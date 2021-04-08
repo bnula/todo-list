@@ -17,8 +17,18 @@ const itemSchema = mongoose.Schema({
    name: String
 });
 
-app.get("/", (req, res) => {
-   res.render("list");
+const Item = mongoose.model("Items", itemSchema);
+
+app.get("/", async (req, res) => {
+   let listItems = [];
+   await Item.find({}, (err, data) => {
+      if (err) {
+         console.log(err);
+      } else {
+         listItems = data;
+      };
+   });
+   res.render("list", {items: listItems});
 });
 
 app.post("/", (req, res) => {

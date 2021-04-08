@@ -4,18 +4,12 @@
 </div>
 <div class="box">
    <form method="POST" action="delete">
-      <div class="item">
-         <input type="checkbox" name="removeItem" value="itemId" onChange="this.form.submit()">
-         <p>Item 1 </p>
-      </div>
-      <div class="item">
-         <input type="checkbox" name="removeItem" value="itemId" onChange="this.form.submit()">
-         <p>Item 2 </p>
-      </div>
-      <div class="item">
-         <input type="checkbox" name="removeItem" value="itemId" onChange="this.form.submit()">
-         <p>Item 2 </p>
-      </div>
+      <% for (const item of items) { %>
+         <div class="item">
+            <input type="checkbox" name="removeItem" value="itemId" onChange="this.form.submit()">
+            <p><%= item.name %></p>
+         </div>
+      <% } %>
    </form>
 
    <form class="item" action="/" method="POST">
