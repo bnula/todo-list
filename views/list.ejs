@@ -6,7 +6,7 @@
    <form method="POST" action="delete">
       <% for (const item of items) { %>
          <div class="item">
-            <input type="checkbox" name="removeItem" value="itemId" onChange="this.form.submit()">
+            <input type="checkbox" name="removeItem" value="<%= item._id %>" onChange="this.form.submit()">
             <p><%= item.name %></p>
          </div>
       <% } %>

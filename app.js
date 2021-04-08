@@ -31,13 +31,19 @@ app.get("/", async (req, res) => {
    res.render("list", {items: listItems});
 });
 
-app.post("/", (req, res) => {
-   console.log(req.body);
+app.post("/", async (req, res) => {
+   const itemName = req.body.addItem;
+   const item = new Item(
+      {
+         name: itemName
+      });
+   await item.save();
    res.redirect("/");
 });
 
-app.post("/delete", (req, res) => {
-   console.log("delete");
+app.post("/delete", async (req, res) => {
+   const itemId = req.body.removeItem;
+   await Item.deleteOne({_id: itemId});
    res.redirect("/");
 })
 
