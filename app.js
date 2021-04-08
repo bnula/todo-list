@@ -18,8 +18,18 @@ const itemSchema = mongoose.Schema({
 });
 
 app.get("/", (req, res) => {
-   res.render("index");
+   res.render("list");
 });
+
+app.post("/", (req, res) => {
+   console.log(req.body);
+   res.redirect("/");
+});
+
+app.post("/delete", (req, res) => {
+   console.log("delete");
+   res.redirect("/");
+})
 
 app.listen(port, () => {
    console.log(`Server running at port ${port}.`);
