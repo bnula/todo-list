@@ -11,7 +11,8 @@ mongoose.connect(
    "mongodb://localhost:27017/todolistDB",
    {
       useNewUrlParser:true,
-      useUnifiedTopology:true
+      useUnifiedTopology:true,
+      useFindAndModify: false
    });
 
 const itemsSchema = mongoose.Schema({
@@ -42,27 +43,75 @@ app.get("/", async (req, res) => {
          listItems = data;
          };
    });
-   res.render("list", {listTitle: "To Do List", items: listItems, pageName: "/"});
+   res.render("list", {listTitle: "To Do List", items: listItems});
 });
 
 app.post("/", async (req, res) => {
+   const type = _.lowerCase(req.body.listName);
    const itemName = req.body.addItem;
    const item = new Item(
       {
          name: itemName
       });
-   await item.save();
-   res.redirect("/");
+   if (type === "to do list") {
+      await item.save();
+      res.redirect("/");
+   } else {
+      List.findOneAndUpdate({name: type}, {$push: {items: item}}, (err) => {
+         if (err) {
+            console.log(err)
+         } else {
+            console.log("Item added");
+            res.redirect(`/${type}`);
+         };
+      });
+   }
 });
 
+// app.post("/:type", async (req, res) => {
+//    const type = _.lowerCase(req.body.listTitle);
+//    console.log(type);
+//    if (type !== "delete") {
+//       const itemName = req.body.addItem;
+//       const item = new Item ({
+//       name: itemName
+//    });
+//    List.findOne({name: type}, (err, data) => {
+//          if (err) {
+//                console.log(err);
+//          } else {
+//                data.items.push(item);
+//                data.save();
+//          };
+//          });
+//          res.redirect(`/${type}`);
+//    } else {
+//          const itemId = req.body.removeItem;
+//          await Item.deleteOne({_id: itemId});
+//          res.redirect("/");
+//    };
+// });
+
 app.post("/delete", async (req, res) => {
+   const type = _.lowerCase(req.body.listName);
    const itemId = req.body.removeItem;
-   await Item.deleteOne({_id: itemId});
-   res.redirect("/");
+   console.log(type);
+   if (type === "to do list")
+   {
+      await Item.deleteOne({_id: itemId});
+      res.redirect("/");
+   } else {
+      List.findOneAndUpdate({name: type}, {$pull: {items: {_id: itemId}}}, (err) => {
+         if (err) {
+            console.log(err)
+         };
+      });
+      res.redirect(`/${type}`);
+   };
 });
 
 app.get("/:type", (req, res) => {
-   const type = req.params.type;
+   const type = _.lowerCase(req.params.type);
    let listItems;
    List.findOne({name: type}, (err, data) => {
          if (err) {
@@ -78,50 +127,10 @@ app.get("/:type", (req, res) => {
                      res.redirect(`/${type}`);
                } else {
                      listItems = data.items;
-                     res.render("list", {listTitle: `${_.capitalize(type)} List`, items: listItems, pageName: `/${type}`});
+                     res.render("list", {listTitle: _.capitalize(type), items: listItems});
                }
          };
    });
-});
-
-app.post("/:type", async (req, res) => {
-   const type = req.params.type;
-   if (type !== "delete") {
-         const itemName = req.body.addItem;
-   const item = new Item ({
-         name: itemName
-   });
-   List.findOne({name: type}, (err, data) => {
-         if (err) {
-               console.log(err);
-         } else {
-               data.items.push(item);
-               data.save();
-         };
-         });
-         res.redirect(`/${type}`);
-   } else {
-         const itemId = req.body.removeItem;
-         await Item.deleteOne({_id: itemId});
-         res.redirect("/");
-   };
-});
-
-app.post("/:type/delete", async (req, res) => {
-   const type = req.params.type;
-   const itemName = req.body.addItem;
-   const item = new Item ({
-         name: itemName
-   });
-   List.findOne({name: type}, async (err, data) => {
-         if (err) {
-               console.log(err);
-         } else {
-               data.items.pop(item);
-               await data.save();
-         };
-   });
-   res.redirect(`/${type}`);
 });
 
 app.listen(port, () => {
