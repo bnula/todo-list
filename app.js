@@ -1,3 +1,4 @@
+const _ = require("lodash");
 const express = require("express");
 const app = express();
 app.use(express.urlencoded({extended: true}));
@@ -60,39 +61,67 @@ app.post("/delete", async (req, res) => {
    res.redirect("/");
 });
 
-app.get("/:type", async (req, res) => {
+app.get("/:type", (req, res) => {
    const type = req.params.type;
-   const colName = type + "Item";
-   const Item = mongoose.model(colName, itemsSchema);
-   await Item.find({}, (err, data) => {
+   let listItems;
+   List.findOne({name: type}, (err, data) => {
          if (err) {
                console.log(err);
          } else {
-               listItems = data;
+               if (!data) {
+                     const list = new List({
+                           name: type,
+                           items: defaultItems
+                     });
+                     listItems = defaultItems;
+                     list.save();
+                     res.redirect(`/${type}`);
+               } else {
+                     listItems = data.items;
+                     res.render("list", {listTitle: `${_.capitalize(type)} List`, items: listItems, pageName: `/${type}`});
+               }
          };
    });
-   res.render("list", {listTitle: `${type} To Do List`, items: listItems, pageName: `/${type}`});
 });
 
 app.post("/:type", async (req, res) => {
    const type = req.params.type;
    if (type !== "delete") {
-         const colName = type + "Item";
-         const Item = mongoose.model(colName, itemsSchema);
-         if (req.body.addItem !== "") {
-               const item = new Item({
-                     name: req.body.addItem
-               });
-               await item.save();
+         const itemName = req.body.addItem;
+   const item = new Item ({
+         name: itemName
+   });
+   List.findOne({name: type}, (err, data) => {
+         if (err) {
+               console.log(err);
+         } else {
+               data.items.push(item);
+               data.save();
          };
+         });
          res.redirect(`/${type}`);
    } else {
          const itemId = req.body.removeItem;
-         await Item.deleteOne({_id: itemId}, function (err){
-               if (err) console.log(err);
-         });
+         await Item.deleteOne({_id: itemId});
          res.redirect("/");
-   }
+   };
+});
+
+app.post("/:type/delete", async (req, res) => {
+   const type = req.params.type;
+   const itemName = req.body.addItem;
+   const item = new Item ({
+         name: itemName
+   });
+   List.findOne({name: type}, async (err, data) => {
+         if (err) {
+               console.log(err);
+         } else {
+               data.items.pop(item);
+               await data.save();
+         };
+   });
+   res.redirect(`/${type}`);
 });
 
 app.listen(port, () => {
