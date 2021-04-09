@@ -1,3 +1,5 @@
+const _ = require("lodash");
+
 const express = require("express");
 const app = express();
 app.use(express.urlencoded({extended: true}));
@@ -71,7 +73,7 @@ app.get("/:type", async (req, res) => {
                listItems = data;
          };
    });
-   res.render("list", {listTitle: `${type} To Do List`, items: listItems, pageName: `/${type}`});
+   res.render("list", {listTitle: `${_.capitalize(type)} To Do List`, items: listItems, pageName: `/${type}`});
 });
 
 app.post("/:type", async (req, res) => {
