@@ -4,11 +4,15 @@ const app = express();
 app.use(express.urlencoded({extended: true}));
 app.use(express.static(__dirname + "/public"));
 app.set("view engine", "ejs");
-const port = 4000;
+const port = process.env.PORT || 4000;
+
+const accData = require("./config.json");
+const acc = accData.mongo.acc;
+const pwd = accData.mongo.pwd;
 
 const mongoose = require("mongoose");
 mongoose.connect(
-   "mongodb://localhost:27017/todolistDB",
+   `mongodb+srv://${acc}:${pwd}@cluster0.1eajp.mongodb.net/toDoList?retryWrites=true&w=majority`,
    {
       useNewUrlParser:true,
       useUnifiedTopology:true,
@@ -54,7 +58,7 @@ app.post("/", async (req, res) => {
          name: itemName
       });
    if (type === "to do list") {
-      await item.save();
+      item.save();
       res.redirect("/");
    } else {
       List.findOneAndUpdate({name: type}, {$push: {items: item}}, (err) => {
@@ -68,34 +72,9 @@ app.post("/", async (req, res) => {
    }
 });
 
-// app.post("/:type", async (req, res) => {
-//    const type = _.lowerCase(req.body.listTitle);
-//    console.log(type);
-//    if (type !== "delete") {
-//       const itemName = req.body.addItem;
-//       const item = new Item ({
-//       name: itemName
-//    });
-//    List.findOne({name: type}, (err, data) => {
-//          if (err) {
-//                console.log(err);
-//          } else {
-//                data.items.push(item);
-//                data.save();
-//          };
-//          });
-//          res.redirect(`/${type}`);
-//    } else {
-//          const itemId = req.body.removeItem;
-//          await Item.deleteOne({_id: itemId});
-//          res.redirect("/");
-//    };
-// });
-
 app.post("/delete", async (req, res) => {
    const type = _.lowerCase(req.body.listName);
    const itemId = req.body.removeItem;
-   console.log(type);
    if (type === "to do list")
    {
       await Item.deleteOne({_id: itemId});
